@@ -1,0 +1,251 @@
+@import './tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   AuraVoyage Global Styles & Mobile-First Reset
+   Editorial Travel Publication • Visual Storytelling • Fluid Touch
+   ========================================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background-color: var(--bg-canvas);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  background-color: var(--bg-canvas);
+  color: var(--color-ink);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  position: relative;
+}
+
+/* Evocative Editorial Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--color-ink);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+
+.text-white h1, .text-white h2, .text-white h3, .text-white h4, .text-white h5, .text-white h6,
+.text-white :is(h1, h2, h3, h4, h5, h6) {
+  color: inherit;
+}
+
+h1 {
+  font-size: var(--text-hero);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: clamp(2rem, 5.5vw, 3.6rem);
+  font-weight: 400;
+  line-height: 1.12;
+}
+
+h3 {
+  font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+  font-weight: 500;
+}
+
+p {
+  color: var(--color-ink-muted);
+  line-height: 1.68;
+  font-size: var(--text-base);
+  font-weight: 400;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Touch targets for mobile excellence */
+.touch-target {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Containers */
+.container {
+  width: 100%;
+  max-width: var(--max-width-editorial);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: var(--space-xl);
+    padding-right: var(--space-xl);
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    padding-left: var(--space-2xl);
+    padding-right: var(--space-2xl);
+  }
+}
+
+/* Editorial Typography Kickers */
+.kicker {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-champagne-dark);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.kicker-light {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Subtle Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-canvas);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-sand-dark);
+  border-radius: var(--radius-pill);
+}
+
+/* Safe areas */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .has-bottom-nav {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (min-width: 1024px) {
+  .has-bottom-nav {
+    padding-bottom: 0 !important;
+  }
+}
+
+/* ==========================================================================
+   Subtle Cinematic Editorial Motion & Utilities
+   ========================================================================== */
+@keyframes fadeInScale {
+  from {
+    opacity: 0.88;
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.cinematic-reveal {
+  animation: fadeInScale 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.image-zoom-container {
+  overflow: hidden;
+}
+
+.image-zoom-target {
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.image-zoom-container:hover .image-zoom-target {
+  transform: scale(1.04);
+}
+
+/* ==========================================================================
+   Hero Slider Auto-Swipe Animations
+   ========================================================================== */
+@keyframes heroProgress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.hero-slide-progress {
+  animation: heroProgress 5s linear forwards;
+}
+
+@keyframes heroContentFade {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-content-animate {
+  animation: heroContentFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

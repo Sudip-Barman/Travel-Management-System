@@ -1,0 +1,793 @@
+/* ==========================================================================
+   AuraVoyage Layout Styles — Cinematic Travel Editorial System
+   Aman & Six Senses Aesthetics • Asymmetric Compositions • Fluid Rails
+   ========================================================================== */
+
+/* --- Minimalist Header --- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: rgba(251, 249, 245, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-hairline);
+  height: var(--header-height-mobile);
+  display: flex;
+  align-items: center;
+  transition: all var(--transition-fast);
+}
+
+@media (min-width: 1024px) {
+  .app-header {
+    height: var(--header-height-desktop);
+  }
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.brand-logo-name {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-ink);
+  text-transform: uppercase;
+}
+
+.brand-logo-tagline {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-champagne-dark);
+  font-weight: 600;
+}
+
+/* Desktop Navigation */
+.desktop-nav {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+  }
+
+  .nav-link {
+    font-size: var(--text-xs);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+    padding: 6px 0;
+    position: relative;
+    transition: color var(--transition-fast);
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .nav-link:hover,
+  .nav-link-active {
+    color: var(--color-ink);
+  }
+
+  .nav-link-active::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 1.5px;
+    background-color: var(--color-ink);
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* Header Account / Profile Action */
+.header-account-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 6px;
+  background-color: var(--bg-sand);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.header-account-btn:hover {
+  background-color: var(--bg-sand-dark);
+  border-color: var(--border-light);
+}
+
+.account-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--color-ink);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.account-label {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .account-label {
+    display: inline;
+  }
+}
+
+.desktop-only-cta {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .desktop-only-cta {
+    display: inline-flex;
+  }
+}
+
+/* Mobile Menu Hamburger Toggle */
+.mobile-menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink);
+  background: transparent;
+  border: 1px solid var(--border-hairline);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.mobile-menu-toggle:hover {
+  background-color: var(--bg-sand);
+}
+
+@media (min-width: 1024px) {
+  .mobile-menu-toggle {
+    display: none;
+  }
+}
+
+/* Mobile Slide-In / Slide-Down Menu Drawer */
+.mobile-menu-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(13, 14, 17, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-base), visibility var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.mobile-menu-drawer.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-menu-inner {
+  background-color: var(--bg-canvas-pure);
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-bottom: 1px solid var(--border-hairline);
+  box-shadow: var(--shadow-deep);
+  padding: var(--space-md) var(--space-md) var(--space-xl) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  transform: translateY(-100%);
+  transition: transform var(--transition-base);
+}
+
+.mobile-menu-drawer.open .mobile-menu-inner {
+  transform: translateY(0);
+}
+
+.mobile-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-hairline);
+  margin-bottom: var(--space-md);
+}
+
+.mobile-menu-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: var(--bg-sand);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-md);
+  cursor: pointer;
+  border: 1px solid var(--border-hairline);
+  transition: background-color var(--transition-fast);
+}
+
+.mobile-menu-user:hover {
+  background-color: var(--bg-sand-dark);
+}
+
+.mobile-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: var(--space-lg);
+}
+
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--color-ink);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+  min-height: var(--touch-target-min);
+}
+
+.mobile-nav-item:hover,
+.mobile-nav-item.active {
+  background-color: var(--bg-sand);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.mobile-nav-item.active {
+  border-left: 3px solid var(--color-ink);
+}
+
+.mobile-menu-footer {
+  margin-top: auto;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-hairline);
+}
+
+.mobile-menu-disclaimer {
+  font-size: 10.5px;
+  color: var(--color-ink-faint);
+  text-align: center;
+  margin-top: 12px;
+  letter-spacing: 0.04em;
+}
+
+/* --- Mobile Bottom Navigation --- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: var(--bottom-nav-height);
+  background-color: rgba(251, 249, 245, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 var(--space-2xs);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (min-width: 1024px) {
+  .bottom-nav {
+    display: none;
+  }
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 100%;
+  color: var(--color-ink-faint);
+  font-size: 10.5px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  position: relative;
+  transition: color var(--transition-fast);
+}
+
+.bottom-nav-item svg {
+  width: 20px;
+  height: 20px;
+  transition: transform var(--transition-fast);
+}
+
+.bottom-nav-item.active {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.bottom-nav-item.active svg {
+  transform: translateY(-1px);
+}
+
+.bottom-nav-badge {
+  position: absolute;
+  top: 8px;
+  right: calc(50% - 12px);
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-champagne-dark);
+  border-radius: 50%;
+}
+
+/* ==========================================================================
+   HOMEPAGE CAMPAIGN HERO — DRAMATIC LUXURY VISUAL ANCHOR
+   "YOUR NEXT EXTRAORDINARY JOURNEY"
+   ========================================================================== */
+.hero-campaign {
+  position: relative;
+  width: 100%;
+  min-height: calc(92vh - var(--header-height-mobile));
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding-bottom: clamp(var(--space-2xl), 8vw, var(--space-4xl));
+  padding-top: var(--space-3xl);
+  overflow: hidden;
+  background-color: var(--bg-dark);
+}
+
+@media (min-width: 1024px) {
+  .hero-campaign {
+    min-height: calc(94vh - var(--header-height-desktop));
+  }
+}
+
+.hero-campaign-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.82) contrast(1.05);
+  transform: scale(1.02);
+  transition: transform 1.4s ease-out;
+}
+
+.hero-campaign-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(13, 14, 17, 0.3) 0%,
+    rgba(13, 14, 17, 0.15) 35%,
+    rgba(13, 14, 17, 0.65) 80%,
+    rgba(13, 14, 17, 0.92) 100%
+  );
+  z-index: 1;
+}
+
+.hero-campaign-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  color: #ffffff;
+}
+
+/* Sparse Floating Luxury Info Pins */
+.hero-floating-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: var(--space-md);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+.hero-meta-pill {
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+/* Floating Sleek Travel Search / Concierge Bar */
+.hero-planner-bar {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--radius-pill);
+  padding: 6px 8px 6px 22px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: var(--shadow-deep);
+  margin-top: var(--space-lg);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 480px) {
+  .hero-planner-bar {
+    padding: 6px 8px 6px 14px;
+    border-radius: var(--radius-pill);
+  }
+}
+
+.hero-planner-input {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.hero-planner-input::placeholder {
+  color: var(--color-ink-faint);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   EDITORIAL ASYMMETRIC STORY COMPOSITION (IMAGE OVERLAPS)
+   ========================================================================== */
+.editorial-story {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2xl);
+  align-items: center;
+}
+
+@media (min-width: 992px) {
+  .editorial-story {
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: var(--space-4xl);
+  }
+}
+
+.editorial-story-reverse {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2xl);
+  align-items: center;
+}
+
+@media (min-width: 992px) {
+  .editorial-story-reverse {
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: var(--space-4xl);
+  }
+}
+
+/* Overlapping Image Composition Frame */
+.image-overlap-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.image-overlap-main {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-subtle);
+  background-color: var(--bg-dark);
+}
+
+.image-overlap-main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.image-overlap-main:hover img {
+  transform: scale(1.03);
+}
+
+.image-overlap-sub {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .image-overlap-sub {
+    display: block;
+    position: absolute;
+    bottom: -32px;
+    right: -24px;
+    width: 44%;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-float);
+    border: 3px solid var(--bg-canvas);
+    z-index: 2;
+    background-color: var(--bg-dark);
+  }
+
+  .image-overlap-sub img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+/* ==========================================================================
+   SCENIC HORIZONTAL RAIL (Large Immersive Portrait Cards)
+   ========================================================================== */
+.scenic-rail-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+.scenic-rail-track {
+  display: flex;
+  gap: var(--space-lg);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--space-sm) 0 var(--space-xl) 0;
+  scrollbar-width: none;
+}
+
+.scenic-rail-track::-webkit-scrollbar {
+  display: none;
+}
+
+.scenic-rail-card {
+  flex: 0 0 82%;
+  max-width: 340px;
+  scroll-snap-align: start;
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  background-color: var(--bg-dark);
+  aspect-ratio: 3 / 4;
+  box-shadow: var(--shadow-subtle);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+@media (min-width: 640px) {
+  .scenic-rail-card {
+    flex: 0 0 44%;
+    max-width: 360px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .scenic-rail-card {
+    flex: 0 0 29%;
+    max-width: 380px;
+  }
+}
+
+.scenic-rail-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-float);
+}
+
+.scenic-rail-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 700ms ease;
+}
+
+.scenic-rail-card:hover img {
+  transform: scale(1.05);
+}
+
+.scenic-rail-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(13, 14, 17, 0.94) 0%,
+    rgba(13, 14, 17, 0.35) 45%,
+    transparent 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--space-lg);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   FULL-BLEED SCENIC STATEMENT MOMENT
+   ========================================================================== */
+.fullbleed-statement {
+  position: relative;
+  width: 100%;
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: var(--bg-dark);
+  color: #ffffff;
+  padding: var(--space-3xl) var(--space-md);
+  text-align: center;
+}
+
+.fullbleed-statement-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.65);
+}
+
+.fullbleed-statement-content {
+  position: relative;
+  z-index: 2;
+  max-width: 820px;
+}
+
+/* ==========================================================================
+   PACKAGE STORY SPLIT LAYOUT (EDITORIAL ALTERNATING COMPOSITIONS)
+   ========================================================================== */
+.story-split,
+.story-split-reverse {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl);
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .story-split {
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: var(--space-3xl);
+  }
+
+  .story-split-reverse {
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: var(--space-3xl);
+  }
+
+  .story-split-reverse > div:first-child {
+    order: 2;
+  }
+}
+
+/* Fluid responsive adjustments for small viewports (320px - 430px) */
+@media (max-width: 480px) {
+  .fullbleed-statement {
+    min-height: 420px;
+    padding: var(--space-2xl) var(--space-sm);
+  }
+}
+
+/* ==========================================================================
+   AGENCY WORKSPACE (Quiet Luxury + Operational Clarity)
+   ========================================================================== */
+.agency-layout {
+  display: flex;
+  min-height: calc(100vh - var(--header-height-mobile));
+}
+
+@media (min-width: 1024px) {
+  .agency-layout {
+    min-height: calc(100vh - var(--header-height-desktop));
+  }
+}
+
+.agency-sidebar {
+  display: none;
+  width: 260px;
+  background-color: #ffffff;
+  border-right: 1px solid var(--border-hairline);
+  padding: var(--space-xl) var(--space-md);
+  flex-shrink: 0;
+}
+
+@media (min-width: 1024px) {
+  .agency-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+}
+
+.agency-main {
+  flex: 1;
+  padding: var(--space-md);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .agency-main {
+    padding: var(--space-2xl);
+  }
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-ink-muted);
+  transition: all var(--transition-fast);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-nav-item:hover {
+  background-color: var(--bg-sand);
+  color: var(--color-ink);
+}
+
+.sidebar-nav-item.active {
+  background-color: var(--color-ink);
+  color: #ffffff;
+  font-weight: 500;
+}
