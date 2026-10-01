@@ -19,43 +19,59 @@ const AppContext = createContext(null);
 const scrollPositions = new Map();
 
 const parseRouteFromUrl = () => {
-  if (typeof window === 'undefined') return { tab: 'home', hash: '' };
+  if (typeof window === 'undefined') return { tab: 'home', hash: '', role: 'customer', agencyTab: 'dashboard' };
   const path = window.location.pathname.toLowerCase().replace(/\/+$/, '') || '/';
   const hash = window.location.hash || '';
 
-  if (path === '/destinations') return { tab: 'destinations', hash };
-  if (path === '/experiences') return { tab: 'experiences', hash };
-  if (path === '/packages') return { tab: 'packages', hash };
-  if (path === '/hotels') return { tab: 'hotels', hash };
-  if (path === '/ai-planner') return { tab: 'ai-planner', hash };
-  if (path === '/quotes') return { tab: 'quotes', hash };
-  if (path === '/trips' || path === '/account') return { tab: 'trips', hash };
-  if (path === '/explore') return { tab: 'home', hash: hash || '#explore' };
+  // Agency desk routes
+  if (path === '/agency' || path.startsWith('/agency/')) {
+    const sub = path.replace('/agency', '').replace(/^\/+/, '') || 'dashboard';
+    return { tab: 'home', hash, role: 'agency', agencyTab: sub };
+  }
+  if (path === '/reports') return { tab: 'home', hash, role: 'agency', agencyTab: 'reports' };
+  if (path === '/enquiries') return { tab: 'home', hash, role: 'agency', agencyTab: 'enquiries' };
+  if (path === '/bookings') return { tab: 'home', hash, role: 'agency', agencyTab: 'bookings' };
+  if (path === '/quotations') return { tab: 'home', hash, role: 'agency', agencyTab: 'quotations' };
+  if (path === '/customers') return { tab: 'home', hash, role: 'agency', agencyTab: 'customers' };
 
-  if (hash.toLowerCase() === '#destinations') return { tab: 'destinations', hash };
-  if (hash.toLowerCase() === '#experiences') return { tab: 'experiences', hash };
-  if (hash.toLowerCase() === '#packages') return { tab: 'packages', hash };
-  if (hash.toLowerCase() === '#hotels') return { tab: 'hotels', hash };
-  if (hash.toLowerCase() === '#ai-planner') return { tab: 'ai-planner', hash };
-  if (hash.toLowerCase() === '#quotes') return { tab: 'quotes', hash };
-  if (hash.toLowerCase() === '#trips' || hash.toLowerCase() === '#account') return { tab: 'trips', hash };
+  if (hash.toLowerCase().startsWith('#agency')) {
+    const sub = hash.toLowerCase().replace('#agency-', '').replace('#agency', '') || 'dashboard';
+    return { tab: 'home', hash, role: 'agency', agencyTab: sub };
+  }
 
-  return { tab: 'home', hash };
+  if (path === '/destinations') return { tab: 'destinations', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (path === '/experiences') return { tab: 'experiences', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (path === '/packages') return { tab: 'packages', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (path === '/hotels') return { tab: 'hotels', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (path === '/ai-planner') return { tab: 'ai-planner', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (path === '/quotes') return { tab: 'quotes', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (path === '/trips' || path === '/account') return { tab: 'trips', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (path === '/explore') return { tab: 'home', hash: hash || '#explore', role: 'customer', agencyTab: 'dashboard' };
+
+  if (hash.toLowerCase() === '#destinations') return { tab: 'destinations', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (hash.toLowerCase() === '#experiences') return { tab: 'experiences', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (hash.toLowerCase() === '#packages') return { tab: 'packages', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (hash.toLowerCase() === '#hotels') return { tab: 'hotels', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (hash.toLowerCase() === '#ai-planner') return { tab: 'ai-planner', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (hash.toLowerCase() === '#quotes') return { tab: 'quotes', hash, role: 'customer', agencyTab: 'dashboard' };
+  if (hash.toLowerCase() === '#trips' || hash.toLowerCase() === '#account') return { tab: 'trips', hash, role: 'customer', agencyTab: 'dashboard' };
+
+  return { tab: 'home', hash, role: 'customer', agencyTab: 'dashboard' };
 };
 
 const generateHistoryKey = () => Math.random().toString(36).substring(2, 9);
 
 export const AppProvider = ({ children }) => {
-  // Role & Navigation
-  const [role, setRole] = useState('customer'); // 'customer' | 'agency'
   const initialRoute = parseRouteFromUrl();
+  // Role & Navigation
+  const [role, setRole] = useState(initialRoute.role || 'customer'); // 'customer' | 'agency'
   const [customerTab, setCustomerTabState] = useState(initialRoute.tab);
   const customerTabRef = useRef(customerTab);
   useEffect(() => {
     customerTabRef.current = customerTab;
   }, [customerTab]);
   const [navKey, setNavKey] = useState(0);
-  const [agencyTab, setAgencyTab] = useState('dashboard');
+  const [agencyTab, setAgencyTab] = useState(initialRoute.agencyTab || 'dashboard');
 
   // Navigation action tracker: PUSH | POP | HASH
   const [navAction, setNavAction] = useState(() => ({

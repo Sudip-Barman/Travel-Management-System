@@ -12,7 +12,7 @@ import {
 import { useApp } from '../../context/AppContext';
 
 export const AgencySidebar = () => {
-  const { agencyTab, setAgencyTab, enquiries } = useApp();
+  const { agencyTab, setAgencyTab, enquiries, setRole } = useApp();
   const pendingCount = enquiries.filter((e) => e.status === 'New').length;
 
   const links = [
@@ -74,8 +74,8 @@ export const AgencySidebar = () => {
         })}
       </nav>
 
-      {/* Specialist Identity Profile */}
-      <div style={{ marginTop: 'auto', paddingTop: 'var(--space-xl)', borderTop: '1px solid var(--border-light)' }}>
+      {/* Specialist Identity Profile & Client Site Switcher */}
+      <div style={{ marginTop: 'auto', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px' }}>
           <img
             src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
@@ -91,6 +91,26 @@ export const AgencySidebar = () => {
             </div>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setRole('customer')}
+          className="sidebar-nav-item"
+          style={{
+            fontSize: '11.5px',
+            padding: '8px 12px',
+            backgroundColor: 'var(--bg-sand)',
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--color-ink)',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <span>Return to Client Site</span>
+          <span style={{ fontSize: '10px', color: 'var(--color-champagne-dark)' }}>↗</span>
+        </button>
       </div>
     </aside>
   );

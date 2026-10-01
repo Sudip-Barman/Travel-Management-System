@@ -16,7 +16,8 @@ export const Header = () => {
     setIsChatOpen,
     setIsAuthModalOpen,
     setIsEnquiryModalOpen,
-    user
+    user,
+    setRole
   } = useApp();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -151,6 +152,17 @@ export const Header = () => {
                 <span className="hidden sm:inline">
                   {user ? user.name.split(' ')[0] : 'Member'}
                 </span>
+              </button>
+
+              {/* Agency Desk Mode Toggle */}
+              <button
+                type="button"
+                onClick={() => setRole('agency')}
+                className="hidden sm:inline-flex items-center gap-1.5 py-1 px-3 bg-sand hover:bg-sand-dark text-ink text-[11px] font-semibold tracking-wider uppercase rounded-full border border-black/[0.08] cursor-pointer transition-colors duration-150"
+                title="Open Agency Operations Workspace"
+              >
+                <span>Agency Desk</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-champagne-dark" />
               </button>
 
               {/* Primary Plan My Trip CTA (Desktop XL only to avoid tablet collisions) */}
@@ -363,6 +375,17 @@ export const Header = () => {
                 <User size={14} /> Profile / Login
               </button>
             </div>
+
+            <button
+              type="button"
+              className="w-full inline-flex items-center justify-center gap-1.5 font-sans text-xs font-semibold py-2 px-3 rounded-full min-h-[38px] bg-sand hover:bg-sand-dark border border-black/15 text-ink transition-colors cursor-pointer mt-2"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setRole('agency');
+              }}
+            >
+              Switch to Agency Desk Workspace →
+            </button>
 
             <div className="text-[10.5px] text-ink-faint text-center mt-3 tracking-wide">
               AuraVoyage • High Jewelry of Travel • Dedicated 24/7 Advisor

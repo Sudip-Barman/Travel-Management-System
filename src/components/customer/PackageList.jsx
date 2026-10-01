@@ -1,57 +1,163 @@
-import React, { useState } from 'react';
-import { ArrowRight, Search, Star, Clock, Check } from 'lucide-react';
+import React from 'react';
+import { ArrowRight, Star, Clock, Check } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { EmptyState } from '../common/EmptyState';
+import {
+  SearchFilter,
+  FilterSelect,
+  FilterEmptyState,
+  useFilterState
+} from '../common/filters';
 
-export const PackageList = () => {
+export const PackageList = ({ isAgencyView = false }) => {
   const {
     packages,
     destinations,
     setSelectedPackage,
-    packageSearchQuery,
-    setPackageSearchQuery,
-    destinationFilter,
-    setDestinationFilter,
     setIsEnquiryModalOpen
   } = useApp();
 
-  const [activeFilter, setActiveFilter] = useState('All');
+  const getPackagePriceNumeric = (pkg) => {
+    if (!pkg.price) return 40000;
+    if (pkg.currency === '$' || (pkg.priceFormatted && pkg.priceFormatted.includes('$'))) {
+      return pkg.price * 85;
+    }
+    return pkg.price;
+  };
 
-  const filteredPackages = packages.filter((pkg) => {
-    const matchesSearch =
-      pkg.title.toLowerCase().includes(packageSearchQuery.toLowerCase()) ||
-      pkg.destination.toLowerCase().includes(packageSearchQuery.toLowerCase()) ||
-      pkg.shortDesc.toLowerCase().includes(packageSearchQuery.toLowerCase());
+  const defaultFilters = {
+    destination: 'All',
+    travelStyle: 'All',
+    duration: 'All',
+    priceRange: 'All'
+  };
 
-    const matchesDuration =
-      activeFilter === 'All'
-        ? true
-        : activeFilter === 'Under 7 Days'
-        ? pkg.days <= 7
-        : activeFilter === 'Grand Journeys'
-        ? pkg.days > 7
-        : true;
+  const sortOptions = [
+    { value: 'featured', label: 'Featured First' },
+    { value: 'duration-asc', label: 'Duration: Short to Long' },
+    { value: 'duration-desc', label: 'Duration: Long to Short' },
+    { value: 'price-asc', label: 'Price: Low to High' },
+    { value: 'price-desc', label: 'Price: High to Low' },
+    { value: 'rating-desc', label: 'Rating: High to Low' }
+  ];
 
-    let matchesMood = true;
-    if (destinationFilter && destinationFilter !== 'All') {
-      const pkgDest = destinations?.find((d) => d.id === pkg.destinationId);
-      matchesMood =
-        (pkgDest && pkgDest.category?.toLowerCase() === destinationFilter.toLowerCase()) ||
-        pkg.destination.toLowerCase().includes(destinationFilter.toLowerCase()) ||
-        pkg.title.toLowerCase().includes(destinationFilter.toLowerCase());
+  const filterFn = (pkg, filters, search) => {
+    // 1. Search Query
+    if (search) {
+      const q = search.toLowerCase();
+      const matchesSearch =
+        pkg.title.toLowerCase().includes(q) ||
+        pkg.destination.toLowerCase().includes(q) ||
+        (pkg.shortDesc && pkg.shortDesc.toLowerCase().includes(q)) ||
+        (pkg.editorialHighlight && pkg.editorialHighlight.toLowerCase().includes(q)) ||
+        (pkg.badge && pkg.badge.toLowerCase().includes(q)) ||
+        (pkg.highlights && pkg.highlights.some((h) => h.toLowerCase().includes(q)));
+
+      if (!matchesSearch) return false;
     }
 
-    return matchesSearch && matchesDuration && matchesMood;
+    // 2. Destination
+    if (filters.destination !== 'All') {
+      const dest = filters.destination.toLowerCase();
+      const pkgDest = destinations?.find((d) => d.id === pkg.destinationId);
+      const matches =
+        pkg.destination.toLowerCase().includes(dest) ||
+        pkg.title.toLowerCase().includes(dest) ||
+        (pkgDest && (pkgDest.name.toLowerCase().includes(dest) || pkgDest.country.toLowerCase().includes(dest)));
+
+      if (!matches) return false;
+    }
+
+    // 3. Travel Style
+    if (filters.travelStyle !== 'All') {
+      const style = filters.travelStyle.toLowerCase();
+      const badge = (pkg.badge || '').toLowerCase();
+      const groupType = (pkg.groupType || '').toLowerCase();
+      const title = pkg.title.toLowerCase();
+
+      if (style.includes('heritage') || style.includes('royal')) {
+        if (!badge.includes('heritage') && !badge.includes('royal') && !title.includes('heritage') && !title.includes('palace')) return false;
+      } else if (style.includes('signature') || style.includes('private')) {
+        if (!badge.includes('signature') && !groupType.includes('private') && !badge.includes('private')) return false;
+      } else if (style.includes('alpine') || style.includes('rail')) {
+        if (!badge.includes('alpine') && !badge.includes('rail') && !badge.includes('pass')) return false;
+      } else if (style.includes('coastal') || style.includes('yacht') || style.includes('water')) {
+        if (!badge.includes('yacht') && !badge.includes('villa') && !badge.includes('ocean') && !badge.includes('backwater')) return false;
+      }
+    }
+
+    // 4. Duration
+    if (filters.duration !== 'All') {
+      const days = pkg.days || 7;
+      if (filters.duration === 'short') {
+        if (days > 5) return false;
+      } else if (filters.duration === 'classic') {
+        if (days < 6 || days > 8) return false;
+      } else if (filters.duration === 'grand') {
+        if (days < 9) return false;
+      }
+    }
+
+    // 5. Price Range
+    if (filters.priceRange !== 'All') {
+      const priceNum = getPackagePriceNumeric(pkg);
+      if (filters.priceRange === 'under-40k') {
+        if (priceNum > 40000) return false;
+      } else if (filters.priceRange === '40k-60k') {
+        if (priceNum < 40000 || priceNum > 65000) return false;
+      } else if (filters.priceRange === 'above-60k') {
+        if (priceNum <= 60000) return false;
+      }
+    }
+
+    return true;
+  };
+
+  const sortFn = (a, b, sortBy) => {
+    switch (sortBy) {
+      case 'duration-asc':
+        return (a.days || 0) - (b.days || 0);
+      case 'duration-desc':
+        return (b.days || 0) - (a.days || 0);
+      case 'price-asc':
+        return getPackagePriceNumeric(a) - getPackagePriceNumeric(b);
+      case 'price-desc':
+        return getPackagePriceNumeric(b) - getPackagePriceNumeric(a);
+      case 'rating-desc':
+        return (b.rating || 0) - (a.rating || 0);
+      case 'featured':
+      default:
+        return (b.reviews || 0) - (a.reviews || 0);
+    }
+  };
+
+  const {
+    searchQuery,
+    setSearchQuery,
+    filters,
+    setFilter,
+    resetFilters,
+    sortBy,
+    setSortBy,
+    showFilters,
+    setShowFilters,
+    activeFilterCount,
+    filteredItems: filteredPackages
+  } = useFilterState({
+    items: packages || [],
+    defaultFilters,
+    defaultSort: 'featured',
+    filterFn,
+    sortFn
   });
 
   return (
-    <section id="packages" className="pt-10 sm:pt-16 lg:pt-24 pb-14 sm:pb-20 lg:pb-32 bg-canvas">
+    <section id="packages" className={isAgencyView ? "w-full py-2" : "pt-8 sm:pt-12 lg:pt-16 pb-14 sm:pb-20 lg:pb-32 bg-[#fbfaf8]"}>
       <div className="w-full max-w-[1360px] mx-auto px-3.5 xs:px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4 mb-6 sm:mb-10 lg:mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4 mb-7 sm:mb-9">
           <div>
-            <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-champagne-dark font-semibold block mb-1.5">
+            <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C8A96B] font-semibold block mb-1.5">
               Ready-To-Book Itineraries
             </span>
             <h2 className="font-display text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-normal uppercase text-ink leading-tight text-balance">
@@ -64,80 +170,90 @@ export const PackageList = () => {
           </p>
         </div>
 
-        {/* Filter Strip: Search + Duration Filter Tabs */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 pb-5 sm:pb-6 border-b border-black/[0.08] mb-8 sm:mb-12">
-          
-          {/* Search Input */}
-          <div className="flex items-center gap-2.5 w-full md:max-w-[380px] bg-white py-2 px-3.5 sm:py-2.5 sm:px-4 rounded-full border border-black/[0.09] shadow-subtle focus-within:border-ink transition-colors">
-            <Search size={16} className="text-ink-muted flex-shrink-0" />
-            <input
-              type="text"
-              placeholder="Filter by city, hotel or experience..."
-              value={packageSearchQuery}
-              onChange={(e) => setPackageSearchQuery(e.target.value)}
-              className="w-full text-xs text-ink bg-transparent border-none outline-none placeholder:text-ink-faint font-sans min-w-0"
-            />
-            {packageSearchQuery && (
-              <button
-                type="button"
-                onClick={() => setPackageSearchQuery('')}
-                className="text-[11px] text-ink-muted hover:text-ink cursor-pointer flex-shrink-0"
-              >
-                Clear
-              </button>
-            )}
-          </div>
+        {/* Reusable SearchFilter Component */}
+        <SearchFilter
+          search={searchQuery}
+          setSearch={setSearchQuery}
+          showFilters={showFilters}
+          setShowFilters={setShowFilters}
+          placeholder="Search packages by title, route, inclusions, styles..."
+          activeCount={activeFilterCount}
+          onClearAll={resetFilters}
+          resultCount={filteredPackages.length}
+          resultLabel="holiday packages"
+        >
+          <FilterSelect
+            label="Destination"
+            value={filters.destination}
+            onChange={(val) => setFilter('destination', val)}
+            options={[
+              { value: 'All', label: 'All Destinations' },
+              { value: 'Kashmir', label: 'Kashmir' },
+              { value: 'Japan', label: 'Japan (Tokyo & Kyoto)' },
+              { value: 'Amalfi', label: 'Amalfi Coast, Italy' },
+              { value: 'Goa', label: 'Goa' },
+              { value: 'Bali', label: 'Bali' },
+              { value: 'Swiss', label: 'Swiss Alps' },
+              { value: 'Kerala', label: 'Kerala Backwaters' },
+              { value: 'Rajasthan', label: 'Rajasthan Heritage' },
+              { value: 'Ladakh', label: 'Ladakh High Passes' }
+            ]}
+          />
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Active Mood Pill */}
-            {destinationFilter && destinationFilter !== 'All' && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-ink-muted">Style:</span>
-                <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-[#f3ede2] text-ink text-xs font-medium border border-black/[0.08] whitespace-nowrap">
-                  <span className="truncate max-w-[120px]">{destinationFilter}</span>
-                  <button
-                    type="button"
-                    onClick={() => setDestinationFilter('All')}
-                    className="text-ink-faint hover:text-ink cursor-pointer text-xs"
-                    aria-label="Clear style filter"
-                  >
-                    ✕
-                  </button>
-                </span>
-              </div>
-            )}
+          <FilterSelect
+            label="Travel Style"
+            value={filters.travelStyle}
+            onChange={(val) => setFilter('travelStyle', val)}
+            options={[
+              { value: 'All', label: 'All Styles' },
+              { value: 'Curated Heritage', label: 'Curated Heritage & Royal' },
+              { value: 'Signature Tour', label: 'Signature Private Journey' },
+              { value: 'Alpine Luxury', label: 'Alpine Luxury & Scenic Rail' },
+              { value: 'Coastal & Yacht', label: 'Coastal Villas & Yachts' }
+            ]}
+          />
 
-            {/* Duration Tabs */}
-            <div className="flex items-center gap-1.5 sm:gap-2 text-xs overflow-x-auto pb-1 scrollbar-none flex-nowrap -mx-1 px-1">
-              {['All', 'Under 7 Days', 'Grand Journeys'].map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveFilter(tab)}
-                  className={`py-1.5 px-3 sm:px-3.5 rounded-full transition-all cursor-pointer font-medium whitespace-nowrap flex-shrink-0 text-[11px] sm:text-xs ${
-                    activeFilter === tab
-                      ? 'bg-ink text-white font-semibold shadow-sm'
-                      : 'bg-transparent text-ink-muted hover:text-ink hover:bg-sand/60'
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-          </div>
+          <FilterSelect
+            label="Duration"
+            value={filters.duration}
+            onChange={(val) => setFilter('duration', val)}
+            options={[
+              { value: 'All', label: 'Any Duration' },
+              { value: 'short', label: '1–5 Days (Short Breaks)' },
+              { value: 'classic', label: '6–8 Days (Classic Journey)' },
+              { value: 'grand', label: '9+ Days (Grand Voyage)' }
+            ]}
+          />
 
-        </div>
+          <FilterSelect
+            label="Price Range"
+            value={filters.priceRange}
+            onChange={(val) => setFilter('priceRange', val)}
+            options={[
+              { value: 'All', label: 'Any Price' },
+              { value: 'under-40k', label: 'Under ₹40,000 / $3,000' },
+              { value: '40k-60k', label: '₹40,000 – ₹60,000 / $3k–$5k' },
+              { value: 'above-60k', label: 'Above ₹60,000 / $5,000+' }
+            ]}
+          />
+
+          <FilterSelect
+            label="Sort By"
+            value={sortBy}
+            onChange={setSortBy}
+            options={sortOptions}
+          />
+        </SearchFilter>
 
         {/* Empty State */}
         {filteredPackages.length === 0 ? (
-          <EmptyState
-            title="No holiday packages matched your search"
-            description="Our personal travel concierges can handcraft a private itinerary for any destination or duration you desire."
-            actionLabel="Request Custom Journey"
-            onAction={() => setIsEnquiryModalOpen(true)}
+          <FilterEmptyState
+            title="No Holiday Packages Matched"
+            description="We couldn't find any packages matching your active filters. Try broadening your duration, budget, or destination criteria."
+            onReset={resetFilters}
           />
         ) : (
-          /* Real Holiday Packages Grid (Resembles Actual Travel Products) */
+          /* Holiday Packages Grid */
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
             {filteredPackages.map((pkg) => (
               <article

@@ -933,6 +933,47 @@ export const MOCK_QUOTATIONS = [
     agentRole: 'Mediterranean Destination Specialist',
     agentAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
     notes: 'Quote prepared with Le Sirenuse cliffside sea view suite.'
+  },
+  {
+    id: 'QUO-2026-084',
+    enquiryId: 'ENQ-8488',
+    clientName: 'David & Emily Vance',
+    destination: 'Japan Zen Temple & Ryokan Immersion',
+    amount: 13400,
+    amountFormatted: '$13,400',
+    currency: '$',
+    validUntil: 'Nov 15, 2026',
+    status: 'Accepted',
+    items: [
+      { name: 'Palace Hotel Tokyo Premier Grand Room (5 Nights)', cost: 4200 },
+      { name: 'Historic Kyoto Gion Ryokan with Private Onsen (4 Nights)', cost: 5800 },
+      { name: 'First-Class Shinkansen Bullet Train Passes & Private Guide', cost: 2100 },
+      { name: 'Private 15th-Gen Tea Master Ceremony & Kaiseki Pairing', cost: 1300 }
+    ],
+    agentName: 'Julian Sterling',
+    agentRole: 'East Asia Senior Curator',
+    agentAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+    notes: 'Confirmed suite with tranquil Zen garden and daily private onsen access.'
+  },
+  {
+    id: 'QUO-2026-077',
+    enquiryId: 'ENQ-8472',
+    clientName: 'Vikram & Radhika Singhania',
+    destination: 'Kashmir Valley Romantic Anniversary Escape',
+    amount: 145000,
+    amountFormatted: '₹1,45,000',
+    currency: '₹',
+    validUntil: 'Oct 10, 2026',
+    status: 'Expired',
+    items: [
+      { name: 'Sukoon Luxury Cedar Houseboat (3 Nights)', cost: 65000 },
+      { name: 'The Khyber Himalayan Resort Premier Suite (2 Nights)', cost: 50000 },
+      { name: 'Private Mercedes Chauffeur & VIP Gondola Passes', cost: 30000 }
+    ],
+    agentName: 'Rohan Deshmukh',
+    agentRole: 'India Private Journeys Director',
+    agentAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+    notes: 'Special anniversary floral arrangements and private sunset shikara included.'
   }
 ];
 
@@ -1028,6 +1069,46 @@ export const MOCK_BOOKINGS = [
         badge: 'VIP Yacht'
       }
     ]
+  },
+  {
+    id: 'BK-9938',
+    bookingRef: 'AV-2026-9938',
+    customerName: 'David & Emily Vance',
+    packageName: 'Timeless Japan: Ryokan, Shinkansen & Heritage',
+    destination: 'Tokyo, Hakone & Kyoto',
+    dates: 'Oct 04 – Oct 16, 2026',
+    travelersCount: 3,
+    totalPrice: 13400,
+    priceFormatted: '$13,400',
+    currency: '$',
+    paidAmount: 13400,
+    paymentStatus: 'Paid in Full',
+    bookingStatus: 'Confirmed',
+    hotelName: 'Palace Hotel Tokyo & Historic Gion Ryokan',
+    flightCode: 'JL-042 (London -> Tokyo)',
+    voucherAvailable: true,
+    agentContact: 'Julian Sterling (+44 20 7946 0912)',
+    itineraryDays: []
+  },
+  {
+    id: 'BK-9921',
+    bookingRef: 'AV-2026-9921',
+    customerName: 'Aarav & Meera Kapoor',
+    packageName: 'Luxury Assagao Heritage Villa & Grand Island',
+    destination: 'Assagao & South Goa',
+    dates: 'Nov 14 – Nov 20, 2026',
+    travelersCount: 4,
+    totalPrice: 520000,
+    priceFormatted: '₹5,20,000',
+    currency: '₹',
+    paidAmount: 150000,
+    paymentStatus: 'Deposit Paid',
+    bookingStatus: 'Confirmed',
+    hotelName: 'Villa Amor 4-Bedroom Estate',
+    flightCode: 'UK-841 (Mumbai -> Goa)',
+    voucherAvailable: true,
+    agentContact: 'Rohan Deshmukh (+91 98100 12345)',
+    itineraryDays: []
   }
 ];
 
@@ -1042,6 +1123,28 @@ export const MOCK_CUSTOMERS = [
     totalTrips: 4,
     totalSpent: '₹14,50,000',
     lastTrip: 'The Kashmir Escape (Departing Tomorrow)'
+  },
+  {
+    id: 'CUST-104',
+    name: 'Emily Vance',
+    email: 'dvance@travelventure.org',
+    phone: '+44 20 7946 0912',
+    city: 'London, UK',
+    tier: 'Aura Black',
+    totalTrips: 5,
+    totalSpent: '$38,200',
+    lastTrip: 'Japan Zen Ryokan (Confirmed)'
+  },
+  {
+    id: 'CUST-105',
+    name: 'Meera Kapoor',
+    email: 'meera.kapoor@innovate.co',
+    phone: '+91 98201 44553',
+    city: 'Delhi, India',
+    tier: 'Gold Traveler',
+    totalTrips: 2,
+    totalSpent: '₹7,80,000',
+    lastTrip: 'Goa Heritage Villa (Pending)'
   },
   {
     id: 'CUST-102',

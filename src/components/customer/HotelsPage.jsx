@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import {
   Hotel,
-  Search,
   Star,
-  MapPin,
   CheckCircle2,
   ArrowRight,
   X
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import {
+  SearchFilter,
+  FilterSelect,
+  FilterEmptyState,
+  useFilterState
+} from '../common/filters';
 
 export const HotelsPage = () => {
   const {
@@ -17,42 +21,116 @@ export const HotelsPage = () => {
     showToast
   } = useApp();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('All');
   const [selectedHotelModal, setSelectedHotelModal] = useState(null);
 
-  const categories = [
-    { id: 'All', label: 'All Stays' },
-    { id: 'Alpine', label: 'Alpine & Snow 🏔️' },
-    { id: 'Heritage', label: 'Heritage & Palaces 🏰' },
-    { id: 'Waterways', label: 'Lakes & Houseboats ⛵' },
-    { id: 'Coastal', label: 'Coastal & Beachfront 🏖️' },
-    { id: 'Cliffside', label: 'Cliffside Sanctuaries 🌊' }
+  // Normalize nightly price to INR numeric for reliable cross-currency filtering/sorting
+  const getHotelPriceNumeric = (hotel) => {
+    if (!hotel.pricePerNight) return 25000;
+    if (hotel.priceFormatted && hotel.priceFormatted.includes('$')) {
+      return hotel.pricePerNight * 85;
+    }
+    return hotel.pricePerNight;
+  };
+
+  const defaultFilters = {
+    destination: 'All',
+    propertyType: 'All',
+    priceRange: 'All',
+    rating: 'All'
+  };
+
+  const sortOptions = [
+    { value: 'curated', label: 'Curated First' },
+    { value: 'rating-desc', label: 'Rating: High to Low' },
+    { value: 'price-asc', label: 'Price: Low to High' },
+    { value: 'price-desc', label: 'Price: High to Low' },
+    { value: 'name-asc', label: 'Name: A to Z' }
   ];
 
-  const filteredHotels = (hotels || []).filter((h) => {
-    const matchesSearch =
-      h.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      h.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      h.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      h.category.toLowerCase().includes(searchQuery.toLowerCase());
+  const filterFn = (hotel, filters, search) => {
+    // 1. Search Query
+    if (search) {
+      const q = search.toLowerCase();
+      const matchesSearch =
+        hotel.name.toLowerCase().includes(q) ||
+        hotel.destination.toLowerCase().includes(q) ||
+        hotel.country.toLowerCase().includes(q) ||
+        hotel.category.toLowerCase().includes(q) ||
+        (hotel.tag && hotel.tag.toLowerCase().includes(q)) ||
+        (hotel.description && hotel.description.toLowerCase().includes(q)) ||
+        (hotel.amenities && hotel.amenities.some((a) => a.toLowerCase().includes(q)));
 
-    const matchesCategory =
-      activeCategory === 'All'
-        ? true
-        : activeCategory === 'Alpine'
-        ? h.category.toLowerCase().includes('alpine') || h.destination.toLowerCase().includes('kashmir') || h.country.toLowerCase().includes('switzerland')
-        : activeCategory === 'Heritage'
-        ? h.category.toLowerCase().includes('heritage') || h.category.toLowerCase().includes('palace') || h.category.toLowerCase().includes('ryokan')
-        : activeCategory === 'Waterways'
-        ? h.category.toLowerCase().includes('houseboat') || h.category.toLowerCase().includes('waterfront') || h.category.toLowerCase().includes('lake')
-        : activeCategory === 'Coastal'
-        ? h.category.toLowerCase().includes('coastal') || h.destination.toLowerCase().includes('goa') || h.destination.toLowerCase().includes('bali')
-        : activeCategory === 'Cliffside'
-        ? h.category.toLowerCase().includes('cliffside') || h.destination.toLowerCase().includes('amalfi')
-        : true;
+      if (!matchesSearch) return false;
+    }
 
-    return matchesSearch && matchesCategory;
+    // 2. Destination
+    if (filters.destination !== 'All') {
+      const dest = filters.destination.toLowerCase();
+      if (!hotel.destination.toLowerCase().includes(dest)) return false;
+    }
+
+    // 3. Property Type
+    if (filters.propertyType !== 'All') {
+      if (hotel.category.toLowerCase() !== filters.propertyType.toLowerCase()) {
+        return false;
+      }
+    }
+
+    // 4. Price Bracket
+    if (filters.priceRange !== 'All') {
+      const price = getHotelPriceNumeric(hotel);
+      if (filters.priceRange === 'under-25k') {
+        if (price > 25000) return false;
+      } else if (filters.priceRange === '25k-40k') {
+        if (price < 25000 || price > 40000) return false;
+      } else if (filters.priceRange === 'above-40k') {
+        if (price <= 40000) return false;
+      }
+    }
+
+    // 5. Rating
+    if (filters.rating !== 'All') {
+      const minRating = parseFloat(filters.rating);
+      if ((hotel.rating || 0) < minRating) return false;
+    }
+
+    return true;
+  };
+
+  const sortFn = (a, b, sortBy) => {
+    switch (sortBy) {
+      case 'rating-desc':
+        return (b.rating || 0) - (a.rating || 0);
+      case 'price-asc':
+        return getHotelPriceNumeric(a) - getHotelPriceNumeric(b);
+      case 'price-desc':
+        return getHotelPriceNumeric(b) - getHotelPriceNumeric(a);
+      case 'name-asc':
+        return a.name.localeCompare(b.name);
+      case 'curated':
+      default:
+        return (b.rating || 0) - (a.rating || 0);
+    }
+  };
+
+  const {
+    searchQuery,
+    setSearchQuery,
+    filters,
+    setFilter,
+    resetFilters,
+    sortBy,
+    setSortBy,
+    showFilters,
+    setShowFilters,
+    activeFilterCount,
+    filteredItems: filteredHotels
+  } = useFilterState({
+    items: hotels || [],
+    defaultFilters,
+    defaultSort: 'curated',
+    filterFn,
+    sortFn
   });
 
   const handleBookHotel = (hotel) => {
@@ -65,82 +143,103 @@ export const HotelsPage = () => {
       <div className="w-full max-w-[1360px] mx-auto px-3.5 xs:px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
-        <div className="max-w-[780px] mb-7 sm:mb-10">
-          <div className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-sand text-champagne-dark text-[11px] font-mono tracking-widest uppercase font-semibold mb-2">
-            <Hotel size={13} className="text-champagne-dark" />
+        <div className="max-w-[780px] mb-7 sm:mb-9">
+          <div className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-[#F3EFE7] text-[#1C1C1C] border border-[#E5DED1] text-[10px] xs:text-[11px] font-mono tracking-widest uppercase font-semibold mb-2">
+            <Hotel size={13} className="text-[#C8A96B]" />
             <span>Curated Hospitality</span>
           </div>
           <h1 className="font-display text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-normal uppercase text-ink tracking-tight mb-2 sm:mb-3 text-balance leading-tight">
             Sanctuaries & Private Villas
           </h1>
-          <p className="text-xs sm:text-base text-ink-muted font-light leading-relaxed text-pretty">
+          <p className="text-xs xs:text-sm sm:text-base text-ink-muted font-light leading-relaxed text-pretty">
             Every property in our portfolio has been vetted in person. Experience heritage Rajasthan royal palaces, ski-in alpine chalets, private cedar houseboats, and cliffside Amalfi suites.
           </p>
         </div>
 
-        {/* Filter Strip */}
-        <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-black/[0.08] shadow-xs mb-8 sm:mb-12">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 sm:gap-4">
-            
-            {/* Search Input */}
-            <div className="flex items-center gap-2.5 w-full md:max-w-[400px] bg-[#f8f5ee] py-2 px-3.5 sm:py-2.5 sm:px-4 rounded-xl border border-black/[0.06] focus-within:border-ink transition-colors">
-              <Search size={16} className="text-ink-muted flex-shrink-0" />
-              <input
-                type="text"
-                placeholder="Search stays, destinations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full text-xs sm:text-sm text-ink bg-transparent border-none outline-none placeholder:text-ink-faint font-medium min-w-0"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="text-ink-muted hover:text-ink text-xs font-mono flex-shrink-0"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
+        {/* Reusable SearchFilter Component */}
+        <SearchFilter
+          search={searchQuery}
+          setSearch={setSearchQuery}
+          showFilters={showFilters}
+          setShowFilters={setShowFilters}
+          placeholder="Search stays, destinations, amenities, tags..."
+          activeCount={activeFilterCount}
+          onClearAll={resetFilters}
+          resultCount={filteredHotels.length}
+          resultLabel="stays & sanctuaries"
+        >
+          <FilterSelect
+            label="Destination"
+            value={filters.destination}
+            onChange={(val) => setFilter('destination', val)}
+            options={[
+              { value: 'All', label: 'All Destinations' },
+              { value: 'Kashmir', label: 'Kashmir (Gulmarg & Dal Lake)' },
+              { value: 'Udaipur', label: 'Udaipur, Rajasthan' },
+              { value: 'Goa', label: 'Goa Coast' },
+              { value: 'Kerala', label: 'Kerala Backwaters' },
+              { value: 'Bali', label: 'Bali, Indonesia' },
+              { value: 'Positano', label: 'Positano, Amalfi' },
+              { value: 'Kyoto', label: 'Kyoto, Japan' }
+            ]}
+          />
 
-            {/* Category Pills */}
-            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-none flex-nowrap -mx-1 px-1">
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`py-1.5 sm:py-2 px-3 sm:px-3.5 rounded-full text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex-shrink-0 ${
-                    activeCategory === cat.id
-                      ? 'bg-ink text-white shadow-xs'
-                      : 'bg-sand/60 hover:bg-sand text-ink-muted hover:text-ink'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
+          <FilterSelect
+            label="Property Type"
+            value={filters.propertyType}
+            onChange={(val) => setFilter('propertyType', val)}
+            options={[
+              { value: 'All', label: 'All Types' },
+              { value: 'Alpine Resort', label: 'Alpine Resort' },
+              { value: 'Heritage Houseboat', label: 'Cedar Houseboat' },
+              { value: 'Heritage Palace', label: 'Heritage Palace' },
+              { value: 'Boutique Coastal', label: 'Boutique Coastal' },
+              { value: 'Waterfront Sanctuary', label: 'Waterfront Sanctuary' },
+              { value: 'River Valley Sanctuary', label: 'River Valley Sanctuary' },
+              { value: 'Cliffside Palace', label: 'Cliffside Palace' },
+              { value: 'Historic Ryokan', label: 'Historic Ryokan' }
+            ]}
+          />
 
-          </div>
-        </div>
+          <FilterSelect
+            label="Price Range"
+            value={filters.priceRange}
+            onChange={(val) => setFilter('priceRange', val)}
+            options={[
+              { value: 'All', label: 'Any Nightly Rate' },
+              { value: 'under-25k', label: 'Under ₹25,000 / $500' },
+              { value: '25k-40k', label: '₹25,000 – ₹40,000 / $500–$800' },
+              { value: 'above-40k', label: 'Above ₹40,000 / $800+' }
+            ]}
+          />
+
+          <FilterSelect
+            label="Rating"
+            value={filters.rating}
+            onChange={(val) => setFilter('rating', val)}
+            options={[
+              { value: 'All', label: 'Any Rating' },
+              { value: '4.95', label: '4.95+ Stars' },
+              { value: '4.97', label: '4.97+ Stars' },
+              { value: '4.98', label: '4.98+ Highest Rated' }
+            ]}
+          />
+
+          <FilterSelect
+            label="Sort By"
+            value={sortBy}
+            onChange={setSortBy}
+            options={sortOptions}
+          />
+        </SearchFilter>
 
         {/* Hotels Grid */}
         {filteredHotels.length === 0 ? (
-          <div className="text-center py-12 sm:py-16 bg-white rounded-2xl border border-black/[0.08] px-4">
-            <Hotel size={36} className="mx-auto text-ink-muted mb-3 opacity-40" />
-            <h3 className="font-display text-lg text-ink mb-1">No stays matched your query</h3>
-            <p className="text-xs text-ink-muted mb-4">Try clearing your filters or exploring another destination.</p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setActiveCategory('All');
-              }}
-              className="py-2 px-4 rounded-full bg-ink text-white text-xs font-medium cursor-pointer"
-            >
-              Reset Filters
-            </button>
-          </div>
+          <FilterEmptyState
+            title="No Stays Matched"
+            description="We couldn't find any properties matching your current filter criteria. Try expanding your destination, price range, or amenities."
+            onReset={resetFilters}
+          />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 lg:gap-8">
             {filteredHotels.map((hotel) => (
@@ -248,9 +347,9 @@ export const HotelsPage = () => {
 
       {/* Hotel Detail Modal */}
       {selectedHotelModal && (
-        <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 xs:p-4">
-          <div className="bg-white rounded-2xl max-w-[580px] w-full max-h-[92dvh] flex flex-col overflow-hidden shadow-2xl border border-black/10 animate-fade-in">
-            <div className="relative aspect-[16/9] sm:aspect-[16/10] w-full bg-stone-900 flex-shrink-0">
+        <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl max-w-[620px] w-full max-h-[92dvh] overflow-y-auto shadow-2xl border border-black/10 animate-fade-in flex flex-col">
+            <div className="relative aspect-[16/9] w-full bg-stone-900 flex-shrink-0">
               <img
                 src={selectedHotelModal.image}
                 alt={selectedHotelModal.name}
@@ -264,73 +363,79 @@ export const HotelsPage = () => {
               >
                 <X size={16} />
               </button>
-              <div className="absolute bottom-3 left-4 right-12 text-white">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-champagne block truncate">
+              <div className="absolute bottom-3 left-4 right-4 text-white min-w-0">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-champagne block">
                   {selectedHotelModal.category}
                 </span>
-                <h3 className="font-display text-lg sm:text-xl uppercase truncate">
+                <h3 className="font-display text-xl xs:text-2xl uppercase truncate">
                   {selectedHotelModal.name}
                 </h3>
               </div>
             </div>
 
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1">
-              <div className="flex flex-wrap items-center gap-2 xs:gap-3 text-xs font-mono text-ink-muted mb-4 pb-3 border-b border-black/[0.06]">
-                <span className="flex items-center gap-1">
-                  <MapPin size={12} className="text-champagne-dark" />
-                  {selectedHotelModal.destination}
-                </span>
-                <span>·</span>
-                <span className="font-semibold text-ink">
-                  {selectedHotelModal.priceFormatted} / night
-                </span>
-                <span>·</span>
-                <span className="flex items-center gap-1 text-champagne-dark">
-                  <Star size={11} className="fill-champagne-dark" />
-                  {selectedHotelModal.rating} ({selectedHotelModal.reviewsCount})
-                </span>
-              </div>
+            <div className="p-4 xs:p-5 sm:p-6 flex-1 flex flex-col justify-between">
+              <div>
+                <p className="text-xs xs:text-sm text-ink-soft font-light mb-4 leading-relaxed">
+                  {selectedHotelModal.description}
+                </p>
 
-              <p className="text-xs sm:text-sm text-ink-soft font-light mb-4 leading-relaxed">
-                {selectedHotelModal.description}
-              </p>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 p-3 rounded-xl bg-sand/40 text-xs font-mono mb-4">
+                  <div className="min-w-0">
+                    <span className="text-ink-muted uppercase block text-[9.5px] truncate">Destination</span>
+                    <span className="font-semibold text-ink text-[11px] xs:text-xs truncate block">{selectedHotelModal.destination}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-ink-muted uppercase block text-[9.5px] truncate">Guest Rating</span>
+                    <span className="font-semibold text-ink text-[11px] xs:text-xs truncate block">{selectedHotelModal.rating} ({selectedHotelModal.reviewsCount} reviews)</span>
+                  </div>
+                </div>
 
-              <div className="mb-6">
-                <h4 className="text-xs font-mono uppercase tracking-wider text-ink-muted mb-2.5 font-semibold">
-                  Included Luxury Amenities:
-                </h4>
-                <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 text-xs text-ink-soft">
-                  {selectedHotelModal.amenities.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-1.5">
-                      <CheckCircle2 size={13} className="text-champagne-dark flex-shrink-0" />
-                      <span className="truncate">{item}</span>
-                    </div>
-                  ))}
+                <div className="mb-5 sm:mb-6">
+                  <h4 className="text-[10.5px] font-mono uppercase tracking-wider text-ink-muted mb-2 font-semibold">
+                    Signature Amenities & Privileges:
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {selectedHotelModal.amenities.map((amenity, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-xs text-ink-soft">
+                        <CheckCircle2 size={13} className="text-champagne-dark flex-shrink-0" />
+                        <span className="truncate">{amenity}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex flex-col-reverse xs:flex-row items-stretch xs:items-center justify-end gap-2.5 pt-3 border-t border-black/[0.08]">
-                <button
-                  type="button"
-                  onClick={() => setSelectedHotelModal(null)}
-                  className="py-2.5 px-4 rounded-full border border-black/20 text-ink text-xs font-semibold uppercase tracking-wider hover:bg-sand/40 cursor-pointer text-center"
-                >
-                  Close
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const h = selectedHotelModal;
-                    setSelectedHotelModal(null);
-                    handleBookHotel(h);
-                  }}
-                  className="py-2.5 px-5 rounded-full bg-ink hover:bg-ink-soft text-white text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer text-center"
-                >
-                  <span>Request Reservation</span>
-                  <ArrowRight size={13} />
-                </button>
-              </div>
+              <div className="flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-3 pt-3 border-t border-black/[0.08]">
+                <div className="min-w-0">
+                  <span className="text-[9px] font-mono text-ink-muted uppercase block">Rates from</span>
+                  <div className="flex items-baseline gap-1">
+                    <strong className="text-lg font-semibold text-ink font-display">{selectedHotelModal.priceFormatted}</strong>
+                    <span className="text-xs text-ink-muted">/ night</span>
+                  </div>
+                </div>
 
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedHotelModal(null)}
+                    className="py-2.5 px-4 rounded-full border border-black/20 text-ink text-xs font-semibold uppercase tracking-wider hover:bg-sand/40 cursor-pointer"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const hotel = selectedHotelModal;
+                      setSelectedHotelModal(null);
+                      handleBookHotel(hotel);
+                    }}
+                    className="py-2.5 px-5 rounded-full bg-ink hover:bg-ink-soft text-white text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Reserve Stay</span>
+                    <ArrowRight size={13} />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
